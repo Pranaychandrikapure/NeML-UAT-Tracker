@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, RefreshCw, Upload, ChevronRight, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { get, api, act } from "../lib/api";
@@ -102,7 +103,7 @@ function Zoho() {
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" data-testid="zoho-save" onClick={() => act(() => api.put("/integrations/zoho", c), "Saved").then(() => { setCfg(null); qc.invalidateQueries({ queryKey: ["zoho"] }); })}>Save config</Button>
-          <Button size="sm" data-testid="zoho-sync-now" onClick={() => act(() => api.post("/integrations/zoho/sync")).then(() => qc.invalidateQueries())}><RefreshCw className="mr-1.5 h-4 w-4" />Sync now</Button>
+          <Button size="sm" data-testid="zoho-sync-now" onClick={() => act(() => api.post("/integrations/zoho/sync")).then((r) => { (r.data.status === "SUCCESS" ? toast.success : toast.error)(r.data.status === "SUCCESS" ? `Sync complete: ${r.data.created} new, ${r.data.updated} updated CRs` : `Sync failed: ${r.data.errors[0] || "see history"}`); qc.invalidateQueries(); })}><RefreshCw className="mr-1.5 h-4 w-4" />Sync now</Button>
           <Button size="sm" variant="outline" data-testid="zoho-import-open" onClick={() => setImp(true)}><Upload className="mr-1.5 h-4 w-4" />Import Zoho JSON</Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">{data.zoho_projects} projects and {data.zoho_crs} CRs originate from Zoho. Sync never overwrites assignments, approvals or workflow status.</p>

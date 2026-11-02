@@ -45,7 +45,7 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card title={`My Pending Actions (${data?.pending_actions?.length || 0})`} className="lg:col-span-2" testid="pending-actions">
           {isLoading ? <Rows /> : !data.pending_actions.length ? <Empty text="No pending actions" hint="New work assigned to you will appear here." /> : (
             <ul className="divide-y">

@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -160,7 +161,7 @@ async def list_users(u=Depends(current_user), q: str = "", role: str = "", proje
         colleague_ids = await db.project_members.distinct("user_id", {"project_id": {"$in": pids}})
         f["id"] = {"$in": list(set(colleague_ids) | await subtree_ids(u["id"]) | {u["id"]})}
     if q:
-        f["$or"] = [{"name": {"$regex": q, "$options": "i"}}, {"email": {"$regex": q, "$options": "i"}}]
+        f["$or"] = [{"name": {"$regex": re.escape(q), "$options": "i"}}, {"email": {"$regex": re.escape(q), "$options": "i"}}]
     if role:
         f["role"] = role
     if project_id:
@@ -281,7 +282,7 @@ async def add_tech(body: NamedIn, u=Depends(current_user)):
 async def list_projects(u=Depends(current_user), q: str = ""):
     f = pscope(await my_project_ids(u), "id")
     if q:
-        f["name"] = {"$regex": q, "$options": "i"}
+        f["name"] = {"$regex": re.escape(q), "$options": "i"}
     ps = await db.projects.find(f, {"_id": 0, "raw": 0}).sort("name", 1).to_list(500)
     for p in ps:
         p["member_count"] = await db.project_members.count_documents({"project_id": p["id"]})
@@ -383,7 +384,7 @@ async def add_module(pid: str, body: NamedIn, u=Depends(current_user)):
     pr = await require_project(u, pid)
     if not (is_admin(u) or pr in MANAGERS or pr == "developer"):
         err(403, "Not permitted to add modules")
-    if await db.modules.find_one({"project_id": pid, "name": {"$regex": f"^{body.name.strip()}$", "$options": "i"}}):
+    if await db.modules.find_one({"project_id": pid, "name": {"$regex": f"^{re.escape(body.name.strip())}$", "$options": "i"}}):
         err(409, "Module name already exists in this project")
     proj = await db.projects.find_one({"id": pid}, {"_id": 0, "config": 1})
     needs = (proj.get("config") or {}).get("require_module_approval", True) and pr in ("team_lead", "developer")
@@ -417,7 +418,7 @@ async def add_screen(mid: str, body: NamedIn, u=Depends(current_user)):
     pr = await require_project(u, m["project_id"])
     if not (is_admin(u) or pr in MANAGERS or pr == "developer"):
         err(403, "Not permitted")
-    if await db.screens.find_one({"module_id": mid, "name": {"$regex": f"^{body.name.strip()}$", "$options": "i"}}):
+    if await db.screens.find_one({"module_id": mid, "name": {"$regex": f"^{re.escape(body.name.strip())}$", "$options": "i"}}):
         err(409, "Screen name already exists in this module")
     s = {"id": uid(), "module_id": mid, "project_id": m["project_id"], "name": body.name.strip(), "description": body.description,
          "archived": False, "status": "PROPOSED" if pr in ("team_lead", "developer") else "ACTIVE", "created_by": u["id"], "created_at": now()}

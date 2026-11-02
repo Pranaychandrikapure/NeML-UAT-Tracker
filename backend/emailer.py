@@ -136,7 +136,7 @@ async def queue_email(idem_key, kind, project_id, to, cc, subject, html, srn_id=
             thread = {"id": uid(), "key": thread_key, "project_id": project_id, "subject": subject, "created_at": now()}
             await db.email_threads.insert_one(dict(thread))
         elif not subject.startswith("Re:"):
-            subject = "Re: " + thread["subject"]
+            subject = f"Re: {thread['subject']} · Follow-up: {subject.replace('[CReMS] ', '')}"
     m = {"id": uid(), "idempotency_key": idem_key, "kind": kind, "project_id": project_id, "srn_id": srn_id,
          "thread_id": thread["id"] if thread else None, "to": sorted(set(to)), "cc": sorted(set(cc) - set(to)), "subject": subject, "html": html,
          "status": "QUEUED", "attempts": 0, "provider_message_id": None, "last_error": None, "created_at": now(), "next_attempt_at": now()}
@@ -146,7 +146,7 @@ async def queue_email(idem_key, kind, project_id, to, cc, subject, html, srn_id=
 
 async def process_outbox():
     stale = (datetime.now(timezone.utc) - timedelta(minutes=3)).isoformat()
-    await db.email_messages.update_many({"status": "SENDING", "sending_at": {"$lt": stale}}, {"$set": {"status": "FAILED", "last_error": "Send interrupted; will retry"}})
+    await db.email_messages.update_many({"status": "SENDING", "$or": [{"sending_at": {"$lt": stale}}, {"sending_at": {"$exists": False}}]}, {"$set": {"status": "FAILED", "last_error": "Send interrupted; will retry"}})
     while True:
         m = await db.email_messages.find_one_and_update(
             {"status": {"$in": ["QUEUED", "FAILED"]}, "attempts": {"$lt": MAX_ATTEMPTS}, "next_attempt_at": {"$lte": now()}},

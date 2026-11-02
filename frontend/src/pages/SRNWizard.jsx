@@ -47,7 +47,7 @@ export default function SRNWizard() {
     <div>
       <PageHeader title={id ? `Edit ${existing.data?.number || "SRN"}` : "New Software Release Note"} subtitle="Guided release note — the DOCX/PDF is generated on the server from this data using your SRN template." />
       <ol className="mb-6 flex flex-wrap gap-2" data-testid="srn-wizard-steps">
-        {STEPS.map((l, i) => <li key={l} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${i === step ? "border-primary bg-primary text-primary-foreground" : i < step ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40" : "text-muted-foreground"}`}>{i < step ? <Check className="h-3 w-3" /> : i + 1}. {l}</li>)}
+        {STEPS.map((l, i) => <li key={l} className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${i === step ? "border-primary bg-primary text-primary-foreground" : i < step ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40" : "text-muted-foreground"}`}>{i < step ? <Check className="h-3 w-3" /> : `${i + 1}.`} {l}</li>)}
       </ol>
       <Card>
         {step === 0 && (

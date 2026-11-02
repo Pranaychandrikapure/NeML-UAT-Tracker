@@ -78,7 +78,8 @@ async def eligible(project_id, srn_id=None):
         if cr["status"] in ("CANCELLED", "CLOSED"):
             continue
         remaining = await db.cr_tasks.count_documents({"cr_id": cr_id, "status": {"$nin": ["SIT_PASSED", "READY_FOR_UAT", "CANCELLED"]}, "mandatory": {"$ne": False}})
-        mods = await db.modules.find({"id": {"$in": [t.get("module_id") for t in ts]}}, {"_id": 0, "name": 1}).to_list(50)
+        mod_ids = [t.get("module_id") for t in ts if t.get("module_id")] or cr.get("impacted_module_ids", [])
+        mods = await db.modules.find({"id": {"$in": mod_ids}}, {"_id": 0, "name": 1}).to_list(50)
         crs.append({"cr_id": cr_id, "cr_number": cr["number"], "title": cr["title"], "status": cr["status"],
                     "full_possible": remaining == 0 and cr["status"] in ("READY_FOR_UAT", "RELEASE_APPROVAL_PENDING"),
                     "remaining_tasks": remaining, "module": ", ".join(m["name"] for m in mods),

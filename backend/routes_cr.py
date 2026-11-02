@@ -1,4 +1,4 @@
-from datetime import date
+import re
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
@@ -109,7 +109,7 @@ async def load_cr(u, cr_id):
 async def list_crs(u=Depends(current_user), q: str = "", project_id: str = "", status: str = "", priority: str = "",
                    source: str = "", ba_id: str = "", manager_id: str = "", developer_id: str = "", module_id: str = "",
                    date_from: str = "", date_to: str = "",
-                   page: int = 1, page_size: int = Query(25, le=500), sort: str = "-updated_at"):
+                   page: int = Query(1, ge=1), page_size: int = Query(25, le=500), sort: str = "-updated_at"):
     f = pscope(await my_project_ids(u))
     if project_id:
         f = {"$and": [f, {"project_id": project_id}]} if f else {"project_id": project_id}
@@ -123,7 +123,7 @@ async def list_crs(u=Depends(current_user), q: str = "", project_id: str = "", s
     if date_from or date_to:
         f["created_at"] = {k: v for k, v in [("$gte", date_from), ("$lte", date_to + "T23:59:59" if date_to else "")] if v}
     if q:
-        f["$or"] = [{"title": {"$regex": q, "$options": "i"}}, {"number": {"$regex": q, "$options": "i"}}]
+        f["$or"] = [{"title": {"$regex": re.escape(q), "$options": "i"}}, {"number": {"$regex": re.escape(q), "$options": "i"}}]
     total = await db.change_requests.count_documents(f)
     direction = -1 if sort.startswith("-") else 1
     items = await db.change_requests.find(f, {"_id": 0, "status_history": 0}).sort(sort.lstrip("-"), direction) \

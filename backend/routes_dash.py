@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta
+import re
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -117,14 +118,14 @@ async def audit_list(u=Depends(current_user), entity_type: str = "", action: str
     if entity_type:
         f["entity_type"] = entity_type
     if action:
-        f["action"] = {"$regex": action, "$options": "i"}
+        f["action"] = {"$regex": re.escape(action), "$options": "i"}
     return await db.audit_logs.find(f, {"_id": 0}).sort("at", -1).to_list(min(limit, 1000))
 
 
 @router.get("/search")
 async def search(q: str, u=Depends(current_user)):
     pf = pscope(await my_project_ids(u))
-    rx = {"$regex": q, "$options": "i"}
+    rx = {"$regex": re.escape(q), "$options": "i"}
     crs = await db.change_requests.find({**pf, "$or": [{"number": rx}, {"title": rx}]}, {"_id": 0, "id": 1, "number": 1, "title": 1}).to_list(8)
     srns = await db.srns.find({**pf, "$or": [{"number": rx}, {"release_version": rx}]}, {"_id": 0, "id": 1, "number": 1, "release_version": 1}).to_list(5)
     bugs = await db.bugs.find({**pf, "$or": [{"number": rx}, {"title": rx}]}, {"_id": 0, "id": 1, "number": 1, "title": 1}).to_list(5)

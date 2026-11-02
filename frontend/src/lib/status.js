@@ -33,8 +33,8 @@ export const CR_STAGES = [
   { label: "BA Review", s: ["BA_REVIEW"] },
   { label: "Impact & Plan", s: ["IMPACT_ANALYSIS", "DEADLINE_APPROVAL_PENDING"] },
   { label: "Development", s: ["ASSIGNED", "IN_DEVELOPMENT"] },
-  { label: "SIT", s: ["SIT_IN_PROGRESS", "READY_FOR_UAT"] },
-  { label: "Release Approval", s: ["RELEASE_APPROVAL_PENDING", "UAT_DEPLOYMENT_PENDING"] },
+  { label: "SIT", s: ["SIT_IN_PROGRESS"] },
+  { label: "Release Approval", s: ["READY_FOR_UAT", "RELEASE_APPROVAL_PENDING", "UAT_DEPLOYMENT_PENDING"] },
   { label: "UAT", s: ["UAT_DEPLOYED", "UAT_IN_PROGRESS", "UAT_HOLD", "UAT_FAILED", "UAT_PASSED"] },
   { label: "Closed", s: ["CLOSED"] },
 ];

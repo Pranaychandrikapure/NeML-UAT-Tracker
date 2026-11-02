@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 1. Backend: 23 pytest API checks (auth 401s, act-as limits, RBAC: dev can't create a CR (403), dev3 can't see a NAFED CR (404), PM can't create a System Admin (403), CR create/BA-approve/task/confirm/task transitions, SRN list/eligible/PDF+DOCX, approvals/UAT/bugs, dashboard/reports/audit/search, admin lists, Zoho not configured). 20 passed, 3 failed: unescaped regex and page=0 both return 500. UI (signed in as the test admin with a Clerk ticket, then act-as) was tested end to end: dashboard KPIs, act-as banner, BA Approve & assign dialog, New CR dialog, PM add task + confirm assignments, Komal's My Tasks and start/complete/SIT on the CR tasks tab, the 6-step SRN wizard, SRN detail with the SoD block reason for the author, PM approval from the Approvals queue, PDF/DOCX downloads, UAT board (UAT member gets action buttons), bug drawer, project list/detail tabs, report charts (6), and all admin tabs (user create, org tree with 12 nodes, Zoho 'Not connected' + Sync Now records a FAILED job, email outbox, audit, role policies). Refreshing keeps the session and sign-out returns to /sign-in. I fixed a mobile overflow on the dashboard and a stray dot in the wizard step pills.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/crs?q=(", "issue": "500. The user's q is passed straight into Mongo $regex without re.escape (routes_cr.py:126). The CR list search box will crash on input like '(' or '['."},
+      {"endpoint": "GET /api/search?q=[", "issue": "500 for the same reason (routes_dash.py:127; global header search). The same pattern is in /api/audit action (routes_dash.py:120), /api/users q (routes_org.py:163), projects q (routes_org.py:284), and the module/screen duplicate-name checks (routes_org.py:386,420), where a name like 'Lot (v2)' gives wrong matches or an error."},
+      {"endpoint": "GET /api/crs?page=0", "issue": "500 because skip((page-1)*page_size) goes negative. Add Query(1, ge=1)."},
+      {"endpoint": "emailer.process_outbox", "issue": "The email_messages record for the bug-fix SRN (srn_id 4451e93d…) has been stuck in status SENDING since 06:58 with attempts=1 and no sending_at field. The stale-recovery query filters on sending_at < stale, so records without sending_at are never recovered. Likely cause: the backend reloaded mid-send under older code. Fix: also match {sending_at: {$exists: false}} (or use created_at)."},
+      {"endpoint": "emailer.queue_email threading", "issue": "A follow-up email in the same thread gets 'Re: ' + the first thread subject. The SRN-2026-0002 TEST-V2 email's subject therefore reads '...SRN SRN-2026-0001 TEST-V1 deployed to UAT', and the recipient can't see which release it is from the subject."},
+      {"endpoint": "GET /api/emails", "issue": "Not admin-only: a developer gets 200 with emails for their own projects. Probably intended, but confirm."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Dashboard (390px)", "issue": "FIXED: the mt-6 grid had no grid-cols-1, so truncated pending-action text pushed the column to ~555px (scrollWidth 571 > 390) and badges were clipped. Added grid-cols-1.", "selector": "Dashboard.jsx line 48", "priority": "MEDIUM"},
+      {"component": "SRNWizard step pills", "issue": "FIXED: completed steps showed '✓ . Select Project' (stray dot).", "selector": "[data-testid=srn-wizard-steps]", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Admin > Zoho Sync Now", "issue": "The FAILED job is recorded and listed, but the user gets no toast or feedback when clicking.", "affected_selectors": ["[data-testid=zoho-sync-now]"]},
+      {"flow": "SRN contents", "issue": "The Module column is empty and the preview shows a blank 'Module Name' for CR-2026-0003, even though the CR has impacted module 'Auction Management'. impacted_modules is not prefilled from the selected CRs.", "affected_selectors": ["[data-testid=srn-preview]"]}
+    ],
+    "design_issues": [
+      {"screen": "Dashboard filters, New CR dialog, prompt dialogs (Add task, Approve & assign, Deadline revision), Projects create, SRN wizard release date", "issues": ["These use the browser's native <input type=date> instead of the shadcn Calendar/Popover date picker."]},
+      {"screen": "CR detail stepper", "issue_note": "", "issues": ["A CR in READY_FOR_UAT still highlights step 5 'SIT' as current, not done, while the badge says 'Ready For UAT'. This is confusing."]},
+      {"screen": "UAT board Completed card", "issues": ["CR-2026-0001 shows 'Retest Passed · 0/1 cases passed' and only SRN-2026-0001. The FAIL case from the first round is counted, and the bug-fix SRN isn't shown."]},
+      {"screen": "My Tasks", "issues": ["Tasks of the CLOSED CR-2026-0001 still appear under 'Released to UAT' (the task status stays READY_FOR_UAT after the CR closes)."]},
+      {"screen": "Mobile header", "issues": ["The act-as selector and global search are hidden below lg/md, so there is no act-as on mobile. Acceptable for demo mode."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_crems_api.py", "/app/backend/tests/conftest.py", "/app/backend/tests/make_ticket.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Escape user regex input with re.escape(q) in routes_cr.py:126, routes_dash.py:120/127, routes_org.py:163/284/386/420",
+    "Validate page>=1 (Query(1, ge=1)) on /api/crs and other paginated lists",
+    "Make outbox stale recovery also handle SENDING records without sending_at; the SRN-2026-0002 email is currently stuck",
+    "Keep the SRN number/version in follow-up thread email subjects",
+    "Show toast feedback on Zoho Sync Now (success or failure)",
+    "Prefill SRN impacted_modules/module column from the selected CRs' impacted_module_ids",
+    "Replace native date inputs with the shadcn Calendar date picker",
+    "Optional: stepper should mark SIT done for READY_FOR_UAT; refine UAT card case counts after retest"
+  ],
+  "critical_code_review_comments": [
+    "Unescaped $regex in 7 places (500s and incorrect duplicate detection)",
+    "emailer.process_outbox stale-SENDING recovery depends on sending_at existing",
+    "My test files under /app/backend/tests trigger uvicorn WatchFiles reloads. A reload during an email send probably caused the stuck SENDING record. Consider excluding tests/ from --reload watch, or moving tests to /app/tests"
+  ],
+  "updated_files": ["/app/frontend/src/pages/Dashboard.jsx", "/app/frontend/src/pages/SRNWizard.jsx", "/app/backend/tests/conftest.py", "/app/backend/tests/test_crems_api.py", "/app/backend/tests/make_ticket.py", "/app/memory/test_credentials.md"],
+  "success_rate": {"backend": "87% (20/23)", "frontend": "~95% (all requested flows work; minor UX issues)"},
+  "test_credentials": "Documented in /app/memory/test_credentials.md (it was empty before this run).",
+  "seed_data_creation": "Created via API/UI: CR-2026-0011 'TEST_API CR' (NEW), CR-2026-0012 'TEST_API flow' (task T-2026-0013 DEV_COMPLETED), CR-2026-0013 'TEST_UI new CR' (NEW), user test_ui_user@example.com (TEST_UI User, developer, NAFED) and possibly test_user_api@example.com. The UI also moved demo CR-2026-0002 to IMPACT_ANALYSIS (BA approved to Anita) and CR-2026-0003 to READY_FOR_UAT (task T-2026-0014 SIT passed by Komal). SRN-2026-0003 TEST-UI-V3 is IN_REVIEW with stage 1 approved by Anita (Vikram TL approval pending).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app/backend/tests && python -m pytest test_crems_api.py (pytest.ini adds xdist -n). UI login: python make_ticket.py -> /sign-in?__clerk_ticket=... (single use per ticket). Act-as: select [data-testid=act-as-select] with the demo user id, or localStorage crems_act_as. SRN-2026-0003 can be continued: approve as Vikram (TL), then Sneha (BA), then Rajat (UAT lead), then deploy as Anita to test the deploy email and the stuck-email recovery.",
+  "rca of the issue": "Search 500: the raw query string is used as a Mongo regex pattern, and invalid patterns raise OperationFailure, which is unhandled. Mobile overflow: CSS grid items default to min-width:auto, so a whitespace-nowrap truncate child widens the implicit auto column; grid-cols-1 (minmax(0,1fr)) fixes it. Stuck email: a record in SENDING without sending_at never matches the recovery filter."
+}
