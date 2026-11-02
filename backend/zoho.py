@@ -18,7 +18,22 @@ def _creds():
 
 async def _cfg():
     c = await db.zoho_integrations.find_one({"id": "default"}, {"_id": 0})
-    return {**DEFAULT_CFG, **(c or {})}
+    cfg = {**DEFAULT_CFG, **(c or {})}
+    if not cfg["portal_id"]:
+        cfg["portal_id"] = os.environ.get("ZOHO_PORTAL_ID", "")
+    if not (c or {}).get("dc") and os.environ.get("ZOHO_DC"):
+        cfg["dc"] = os.environ["ZOHO_DC"]
+    return cfg
+
+
+SYSTEM_USER = {"id": "system", "name": "Zoho Auto Sync", "role": "system_admin"}
+
+
+async def auto_sync():
+    """Scheduled sync; only runs when credentials and portal are configured."""
+    cfg = await _cfg()
+    if all(_creds().values()) and cfg["portal_id"] and cfg.get("auto_sync", True):
+        await run_sync(SYSTEM_USER)
 
 
 def _date(v):
@@ -165,6 +180,7 @@ class ZohoCfg(BaseModel):
     cr_match: str = "CR"
     project_ids: list = []
     default_ba_email: str = ""
+    auto_sync: bool = True
 
 
 @router.put("/integrations/zoho")

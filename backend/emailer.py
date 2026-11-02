@@ -193,6 +193,9 @@ async def worker_loop():
             await process_outbox()
             if tick % 360 == 0:
                 await deadline_reminders()
+            if tick % 180 == 30:
+                from zoho import auto_sync
+                await auto_sync()
         except Exception as e:
             logger.error(f"worker error: {e}")
         tick += 1
