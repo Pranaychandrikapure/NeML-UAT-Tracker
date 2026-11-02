@@ -1,0 +1,107 @@
+{
+  "app_name": "CReMS (Change & Release Management System)",
+  "design_philosophy": "Enterprise SaaS Precision — High Data Density, Clear Status Hierarchy, Clean Light-First Interface",
+  "theme": {
+    "default_mode": "light",
+    "toggle_available": true,
+    "colors_light": {
+      "background": "#F8FAFC",
+      "surface": "#FFFFFF",
+      "surface_subtle": "#F1F5F9",
+      "border": "#E2E8F0",
+      "border_hover": "#CBD5E1",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "text_muted": "#64748B",
+      "primary": "#2563EB",
+      "primary_hover": "#1D4ED8",
+      "primary_foreground": "#FFFFFF",
+      "accent": "#0EA5E9",
+      "destructive": "#DC2626",
+      "success": "#16A34A",
+      "warning": "#D97706"
+    },
+    "colors_dark": {
+      "background": "#0F172A",
+      "surface": "#1E293B",
+      "surface_subtle": "#334155",
+      "border": "#334155",
+      "border_hover": "#475569",
+      "text_primary": "#F8FAFC",
+      "text_secondary": "#CBD5E1",
+      "text_muted": "#94A3B8",
+      "primary": "#3B82F6",
+      "primary_hover": "#60A5FA",
+      "primary_foreground": "#FFFFFF",
+      "accent": "#38BDF8",
+      "destructive": "#EF4444",
+      "success": "#22C55E",
+      "warning": "#F59E0B"
+    }
+  },
+  "typography": {
+    "heading_font": "Plus Jakarta Sans, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "code_font": "JetBrains Mono, monospace",
+    "scale": {
+      "h1": "text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50",
+      "h2": "text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100",
+      "h3": "text-lg font-semibold text-slate-900 dark:text-slate-100",
+      "h4": "text-base font-medium text-slate-800 dark:text-slate-200",
+      "body": "text-sm text-slate-600 dark:text-slate-300",
+      "caption": "text-xs text-slate-500 dark:text-slate-400 font-medium"
+    }
+  },
+  "workflow_status_colors": {
+    "DRAFT": { "bg": "bg-slate-100 dark:bg-slate-800", "text": "text-slate-700 dark:text-slate-300", "border": "border-slate-200 dark:border-slate-700" },
+    "PENDING_BA_REVIEW": { "bg": "bg-amber-50 dark:bg-amber-950/50", "text": "text-amber-700 dark:text-amber-300", "border": "border-amber-200 dark:border-amber-800" },
+    "BA_APPROVED": { "bg": "bg-blue-50 dark:bg-blue-950/50", "text": "text-blue-700 dark:text-blue-300", "border": "border-blue-200 dark:border-blue-800" },
+    "IMPACT_ANALYSIS_IN_PROGRESS": { "bg": "bg-indigo-50 dark:bg-indigo-950/50", "text": "text-indigo-700 dark:text-indigo-300", "border": "border-indigo-200 dark:border-indigo-800" },
+    "IN_DEVELOPMENT": { "bg": "bg-sky-50 dark:bg-sky-950/50", "text": "text-sky-700 dark:text-sky-300", "border": "border-sky-200 dark:border-sky-800" },
+    "SIT_PASSED": { "bg": "bg-teal-50 dark:bg-teal-950/50", "text": "text-teal-700 dark:text-teal-300", "border": "border-teal-200 dark:border-teal-800" },
+    "SRN_DRAFTED": { "bg": "bg-purple-50 dark:bg-purple-950/50", "text": "text-purple-700 dark:text-purple-300", "border": "border-purple-200 dark:border-purple-800" },
+    "SRN_TL_APPROVED": { "bg": "bg-violet-50 dark:bg-violet-950/50", "text": "text-violet-700 dark:text-violet-300", "border": "border-violet-200 dark:border-violet-800" },
+    "SRN_BA_APPROVED": { "bg": "bg-cyan-50 dark:bg-cyan-950/50", "text": "text-cyan-700 dark:text-cyan-300", "border": "border-cyan-200 dark:border-cyan-800" },
+    "UAT_DEPLOYED": { "bg": "bg-orange-50 dark:bg-orange-950/50", "text": "text-orange-700 dark:text-orange-300", "border": "border-orange-200 dark:border-orange-800" },
+    "UAT_PASSED": { "bg": "bg-emerald-50 dark:bg-emerald-950/50", "text": "text-emerald-700 dark:text-emerald-300", "border": "border-emerald-200 dark:border-emerald-800" },
+    "UAT_FAILED": { "bg": "bg-rose-50 dark:bg-rose-950/50", "text": "text-rose-700 dark:text-rose-300", "border": "border-rose-200 dark:border-rose-800" },
+    "RELEASED": { "bg": "bg-green-100 dark:bg-green-950", "text": "text-green-800 dark:text-green-200", "border": "border-green-300 dark:border-green-800" },
+    "REJECTED": { "bg": "bg-red-50 dark:bg-red-950/50", "text": "text-red-700 dark:text-red-300", "border": "border-red-200 dark:border-red-800" }
+  },
+  "layout": {
+    "sidebar": {
+      "width_expanded": "w-64",
+      "width_collapsed": "w-16",
+      "items": [
+        "Dashboard",
+        "Change Requests",
+        "My Tasks",
+        "Approvals",
+        "SRN/Releases",
+        "UAT Management",
+        "Bug Tracker",
+        "Projects",
+        "Reports",
+        "Administration",
+        "Settings"
+      ]
+    },
+    "header": {
+      "height": "h-16",
+      "components": ["Project Selector Dropdown", "Global Quick Search (CR / SRN / Bug)", "Role Switcher / Simulator", "Zoho Sync Health Badge", "Notification Center", "User Profile Menu"]
+    }
+  },
+  "key_components_design": {
+    "kpi_cards": "Grid of 12 responsive micro-cards with crisp border (1px border-slate-200), subtle hover state, status indicator left bar or badge, count, and delta indicator",
+    "cr_stepper": "Compact 6-stage lifecycle stepper (Submitted -> BA Review -> PM Impact & Dev -> SIT -> SRN Approval -> UAT & Release) with completed/current/pending status states",
+    "srn_wizard": "6-step wizard: Scope & CR Links -> Change Summary & Impact -> SIT Test Evidence -> DB & Config Scripts -> Deployment Instructions -> Approval Sign-off",
+    "org_hierarchy_tree": "Interactive nested tree diagram showing Admin -> Project Lead -> Sr PM -> PM -> TL -> Dev and parallel tracks BA Lead -> BA, UAT Lead -> UAT Manager -> UAT Member"
+  },
+  "general_ui_ux_rules": [
+    "Never use full-screen dark gradients. Keep clean slate/white surfaces with subtle 1px borders.",
+    "Always set explicit text color on hover states (e.g. hover:bg-slate-900 hover:text-white).",
+    "Do NOT use completely transparent backgrounds on headers or dropdown overlays — use backdrop-blur with bg-white/90 or bg-slate-900/90.",
+    "Add data-testid attribute in kebab-case to ALL buttons, inputs, tabs, selects, table rows, badges, and interactive elements for reliable automated testing.",
+    "Support toast notifications via Sonner for all user actions (create CR, approve SRN, assign task, submit UAT bug, trigger Zoho sync)."
+  ]
+}
